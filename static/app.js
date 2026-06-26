@@ -124,6 +124,15 @@ function compareVersions(left, right) {
   return 0;
 }
 
+function extractVersionCandidate(release) {
+  const values = [release?.name, release?.tag_name];
+  for (const value of values) {
+    const match = String(value || "").match(/v?\d+(?:\.\d+){0,2}/i);
+    if (match) return match[0];
+  }
+  return "";
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -195,13 +204,13 @@ function fmtHistory(value) {
 }
 
 function showUpdateToast(release) {
-  const version = String(release.tag_name || "").replace(/^v/i, "");
+  const version = extractVersionCandidate(release) || "unbekannt";
   updateToastEl.hidden = false;
   updateToastEl.innerHTML = `
     <div class="toast-content">
       <div>
         <strong>Neue Version verfügbar</strong>
-        <span>v${escapeHtml(version || "unbekannt")}</span>
+        <span>${escapeHtml(version.startsWith("v") ? version : `v${version}`)}</span>
       </div>
       <a href="${escapeHtml(release.html_url || `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`)}" target="_blank" rel="noreferrer">Release öffnen</a>
       <button type="button" aria-label="Toast schließen">Schließen</button>
@@ -226,7 +235,7 @@ async function checkForUpdates() {
     });
     if (!response.ok) return;
     const release = await response.json();
-    const latestVersion = String(release.tag_name || "").replace(/^v/i, "");
+    const latestVersion = extractVersionCandidate(release).replace(/^v/i, "");
     if (!latestVersion) return;
     if (compareVersions(latestVersion, APP_VERSION) > 0) {
       showUpdateToast(release);
