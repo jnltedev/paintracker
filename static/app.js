@@ -10,6 +10,9 @@ const state = {
 };
 
 const AUTOSAVE_DELAY = 800;
+const APP_VERSION = "0.1.0";
+const GITHUB_OWNER = "jnltedev";
+const GITHUB_REPO = "paintracker";
 const REQUIRED_ENTRY_FIELDS = [
   "pain_morning",
   "pain_noon",
@@ -29,6 +32,8 @@ const selectedDateLabel = document.querySelector("#selectedDateLabel");
 const entryMetaEl = document.querySelector("#entryMeta");
 const dashboardStatsEl = document.querySelector("#dashboardStats");
 const dashboardChartEl = document.querySelector("#dashboardChart");
+const appVersionEl = document.querySelector("#appVersion");
+const updateToastEl = document.querySelector("#updateToast");
 const entryForm = document.querySelector("#entryForm");
 const profileForm = document.querySelector("#profileForm");
 const entryStatus = document.querySelector("#entryStatus");
@@ -38,6 +43,8 @@ const prevMonthButton = document.querySelector("#prevMonth");
 const nextMonthButton = document.querySelector("#nextMonth");
 
 const TODAY = toISODate(new Date());
+
+appVersionEl.textContent = `Version v${APP_VERSION}`;
 
 function toISODate(date) {
   const year = date.getFullYear();
@@ -97,6 +104,24 @@ function fillForm(form, data) {
 
 function autosaveMessage(manual, successText = "Automatisch gespeichert") {
   return manual ? "Gespeichert" : successText;
+}
+
+function compareVersions(left, right) {
+  const normalize = (value) => String(value || "")
+    .trim()
+    .replace(/^v/i, "")
+    .split(".")
+    .map((part) => Number.parseInt(part, 10));
+  const leftParts = normalize(left);
+  const rightParts = normalize(right);
+  const length = Math.max(leftParts.length, rightParts.length, 3);
+  for (let index = 0; index < length; index += 1) {
+    const a = leftParts[index] || 0;
+    const b = rightParts[index] || 0;
+    if (a > b) return 1;
+    if (a < b) return -1;
+  }
+  return 0;
 }
 
 function escapeHtml(value) {
@@ -167,6 +192,48 @@ function fmtHistory(value) {
     month: "2-digit",
     year: "numeric",
   }).format(new Date(`${value}T12:00:00`));
+}
+
+function showUpdateToast(release) {
+  const version = String(release.tag_name || "").replace(/^v/i, "");
+  updateToastEl.hidden = false;
+  updateToastEl.innerHTML = `
+    <div class="toast-content">
+      <div>
+        <strong>Neue Version verfügbar</strong>
+        <span>v${escapeHtml(version || "unbekannt")}</span>
+      </div>
+      <a href="${escapeHtml(release.html_url || `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`)}" target="_blank" rel="noreferrer">Release öffnen</a>
+      <button type="button" aria-label="Toast schließen">Schließen</button>
+    </div>
+  `;
+  const closeButton = updateToastEl.querySelector("button");
+  closeButton.addEventListener("click", () => {
+    updateToastEl.hidden = true;
+  });
+  window.setTimeout(() => {
+    updateToastEl.hidden = true;
+  }, 12000);
+}
+
+async function checkForUpdates() {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`, {
+      headers: {
+        Accept: "application/vnd.github+json",
+      },
+      cache: "no-store",
+    });
+    if (!response.ok) return;
+    const release = await response.json();
+    const latestVersion = String(release.tag_name || "").replace(/^v/i, "");
+    if (!latestVersion) return;
+    if (compareVersions(latestVersion, APP_VERSION) > 0) {
+      showUpdateToast(release);
+    }
+  } catch (_) {
+    // Silent fallback: offline or GitHub unavailable.
+  }
 }
 
 function isBeforeDate(left, right) {
@@ -580,6 +647,7 @@ async function boot() {
   state.autosaveReady = true;
   entryStatus.textContent = "Autosave aktiv";
   profileStatus.textContent = "Autosave aktiv";
+  checkForUpdates();
 }
 
 boot().catch((error) => {
