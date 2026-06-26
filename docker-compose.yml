@@ -1,0 +1,9 @@
+services:
+  paintracker:
+    build: .
+    container_name: paintracker
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./.paintracker-data:/data
+    restart: unless-stopped

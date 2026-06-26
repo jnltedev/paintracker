@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Schmerztagebuch</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Schmerztagebuch</h1>
+      </div>
+      <a class="export-link" href="/export.pdf">PDF exportieren</a>
+    </header>
+
+    <main class="layout">
+      <section class="dashboard-panel" aria-label="Dashboard">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h2>Schmerzverlauf</h2>
+          </div>
+          <p class="dashboard-hint">Alle Einträge im Verlauf</p>
+        </div>
+        <div class="dashboard-grid" id="dashboardStats"></div>
+        <div class="chart-card">
+          <svg id="dashboardChart" class="dashboard-chart" viewBox="0 0 1000 320" preserveAspectRatio="none" role="img" aria-label="Schmerzverlauf als Liniendiagramm"></svg>
+        </div>
+      </section>
+
+      <section class="calendar-panel" aria-label="Kalender">
+        <div class="month-controls">
+          <button id="prevMonth" type="button" aria-label="Vorheriger Monat">‹</button>
+          <h2 id="monthTitle"></h2>
+          <button id="nextMonth" type="button" aria-label="Nächster Monat">›</button>
+        </div>
+        <div class="weekdays" aria-hidden="true">
+          <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+        </div>
+        <div id="calendar" class="calendar"></div>
+        <div class="legend">
+          <span><i class="dot complete"></i> vollständig</span>
+          <span><i class="dot incomplete"></i> unvollständig</span>
+          <span><i class="dot overdue"></i> nachzutragen</span>
+          <span><i class="dot today"></i> heute</span>
+        </div>
+      </section>
+
+      <section class="entry-panel" aria-label="Tageseintrag">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Eintrag</p>
+            <h2 id="selectedDateLabel"></h2>
+            <p id="entryMeta" class="entry-meta"></p>
+          </div>
+          <button id="deleteEntry" class="ghost danger" type="button">Eintrag löschen</button>
+        </div>
+
+        <form id="entryForm">
+          <input id="entry_date" name="entry_date" type="hidden">
+
+          <fieldset>
+            <legend>Schmerzintensität</legend>
+            <div class="pain-grid">
+              <label>morgens <input name="pain_morning" type="range" min="0" max="10"><output></output></label>
+              <label>mittags <input name="pain_noon" type="range" min="0" max="10"><output></output></label>
+              <label>abends <input name="pain_evening" type="range" min="0" max="10"><output></output></label>
+              <label>nachts <input name="pain_night" type="range" min="0" max="10"><output></output></label>
+            </div>
+          </fieldset>
+
+          <div class="form-grid">
+            <label>Begleitsymptome
+              <textarea name="symptoms" rows="3"></textarea>
+            </label>
+            <label>Schmerzauslösende Tätigkeiten
+              <textarea name="triggers" rows="3"></textarea>
+            </label>
+            <label>Allgemeinbefinden
+              <select name="wellbeing">
+                <option value="">Bitte auswählen</option>
+                <option value="sehr gut">sehr gut</option>
+                <option value="gut">gut</option>
+                <option value="mittel">mittel</option>
+                <option value="schlecht">schlecht</option>
+                <option value="sehr schlecht">sehr schlecht</option>
+                <option value="stark eingeschränkt">stark eingeschränkt</option>
+              </select>
+            </label>
+            <label>Eingenommene Medikamente
+              <textarea name="medication" rows="3"></textarea>
+            </label>
+            <label>Wetter tagsüber
+              <select name="weather">
+                <option value="">Bitte auswählen</option>
+                <option value="Sonnig">Sonnig</option>
+                <option value="Bewölkt">Bewölkt</option>
+                <option value="Regen">Regen</option>
+                <option value="Schnee">Schnee</option>
+                <option value="Gewitter">Gewitter</option>
+                <option value="Nebel">Nebel</option>
+                <option value="Schwül">Schwül</option>
+                <option value="Wechselhaft">Wechselhaft</option>
+              </select>
+            </label>
+            <label>Temperatur °C
+              <input name="temperature" type="number" step="0.1" inputmode="decimal">
+            </label>
+          </div>
+
+          <label>Bemerkungen
+            <textarea name="notes" rows="4"></textarea>
+          </label>
+
+          <div class="actions">
+            <button type="submit">Speichern</button>
+            <span id="entryStatus" role="status"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="profile-panel" aria-label="Über mich">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">PDF Deckblatt</p>
+            <h2>Über mich & Fallinfos</h2>
+          </div>
+        </div>
+        <form id="profileForm">
+          <div class="form-grid compact">
+            <label>Name <input name="name" type="text"></label>
+            <label>Geschlecht
+              <select name="gender">
+                <option value="">Bitte auswählen</option>
+                <option value="männlich">männlich</option>
+                <option value="weiblich">weiblich</option>
+                <option value="divers">divers</option>
+              </select>
+            </label>
+            <label>Alter <input name="age" type="number" inputmode="numeric"></label>
+            <label>Gewicht kg <input name="weight" type="number" step="0.1" inputmode="decimal"></label>
+            <label>Größe cm <input name="height" type="number" step="0.1" inputmode="decimal"></label>
+            <label>Unfalldatum <input name="accident_date" type="date"></label>
+            <label>Aktenzeichen Anwalt <input name="case_number_lawyer" type="text"></label>
+            <label>Aktenzeichen Polizei <input name="case_number_police" type="text"></label>
+            <label>Anwalt / Kanzlei <input name="lawyer" type="text"></label>
+            <label>Diagnose <input name="diagnosis" type="text"></label>
+            <label>Betroffenes Gelenk / Körperbereich <input name="affected_joint" type="text"></label>
+          </div>
+          <label>Notizen
+            <textarea name="notes" rows="3"></textarea>
+          </label>
+          <div class="actions">
+            <button type="submit">Profil speichern</button>
+            <span id="profileStatus" role="status"></span>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
