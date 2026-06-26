@@ -10,7 +10,7 @@ const state = {
 };
 
 const AUTOSAVE_DELAY = 800;
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "1.0.0";
 const GITHUB_OWNER = "jnltedev";
 const GITHUB_REPO = "paintracker";
 const REQUIRED_ENTRY_FIELDS = [
